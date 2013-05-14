@@ -10,7 +10,7 @@ import javax.swing.ImageIcon;
  *
  * @author EdilsonFernando
  */
-public class Carta {
+public class Carta implements Comparable {
     public static String TREBOL = "Trebol";
     public static String ESPADA = "Espada";
     public static String DIAMANTE = "Diamante";
@@ -49,5 +49,38 @@ public class Carta {
     public ImageIcon getImage() {
         return this.img;
     }
+    
+    @Override
+    public String toString() {
+        return this.palo + " " + this.numero;
+    }
+    
+    public boolean equalsNum(Carta other) {
+        return this.getNumero() == other.getNumero();
+    }
 
+    
+    @Override
+    public int compareTo(Object other) {
+        if (other instanceof Carta) {
+            if (this.getNumero() == 1) {
+                if (((Carta) other).getNumero() == 1) {
+                    return 0;
+                } else {
+                    return 1;
+                }
+            } else {
+                if (this.getNumero() > ((Carta) other).getNumero()) {
+                    return 1;
+                } else if (this.getNumero() < ((Carta) other).getNumero()) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            }
+        }
+        
+        return 0;
+    }
+ 
 }
