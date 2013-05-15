@@ -6,7 +6,16 @@ package edu.unitec.videopoker;
 
 import edu.unitec.adt.*;
 import java.awt.Image;
+import java.io.EOFException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
@@ -34,6 +43,9 @@ public class VideoPoker extends javax.swing.JFrame {
 
         //Inicializando arreglo actual
         this.cartasActuales = new Carta[5];
+
+        this.partidas = new SLList();
+        this.numPartida = 0;
 
         inicializarCartas();
         situacionInicial();
@@ -75,7 +87,7 @@ public class VideoPoker extends javax.swing.JFrame {
         this.carta3.setEnabled(true);
         this.carta4.setEnabled(true);
         this.carta5.setEnabled(true);
-        
+
         nuevaBarajar();
         animacionCambio();
         this.btn_draw.setVisible(false);
@@ -341,6 +353,7 @@ public class VideoPoker extends javax.swing.JFrame {
             if (tmp[0].getNumero() == 1 && tmp[1].getNumero() == 10 && tmp[2].getNumero() == 11
                     && tmp[3].getNumero() == 12 && tmp[4].getNumero() == 13) {
                 System.out.println("Royal Straight Flush");
+                escribirArchivoPartidas(new Partida(this.cartasActuales, "Royal Straight Flush"));
                 return (int) tApuestas.getValueAt(0, 1);
             }
         }
@@ -354,6 +367,7 @@ public class VideoPoker extends javax.swing.JFrame {
                     && tmp[3].getNumero() == tmp[0].getNumero() + 3 && tmp[4].getNumero() == tmp[0].getNumero() + 4) {
                 if (tmp[0].getNumero() != 1) {
                     System.out.println("Straight Flush");
+                    escribirArchivoPartidas(new Partida(this.cartasActuales, "Straight Flush"));
                     return (int) tApuestas.getValueAt(2, 1);
                 }
             }
@@ -371,6 +385,7 @@ public class VideoPoker extends javax.swing.JFrame {
 
             if (four == 3) {
                 System.out.println("Four of a kind");
+                escribirArchivoPartidas(new Partida(this.cartasActuales, "Four of a kind"));
                 return (int) tApuestas.getValueAt(3, 1);
             } else {
                 four = 0;
@@ -388,6 +403,7 @@ public class VideoPoker extends javax.swing.JFrame {
 
             if (fullhouse == 4) {
                 System.out.println("Full House");
+                escribirArchivoPartidas(new Partida(this.cartasActuales, "Full House"));
                 return (int) tApuestas.getValueAt(4, 1);
             }
         }
@@ -396,14 +412,16 @@ public class VideoPoker extends javax.swing.JFrame {
         if (tmp[0].getPalo().equals(tmp[1].getPalo()) && tmp[0].getPalo().equals(tmp[2].getPalo())
                 && tmp[0].getPalo().equals(tmp[3].getPalo()) && tmp[0].getPalo().equals(tmp[4].getPalo())) {
             System.out.println("Flush");
-            return (Integer.parseInt(this.wagerVal.getText()) * ((int) tApuestas.getValueAt(5, 1)));
+            escribirArchivoPartidas(new Partida(this.cartasActuales, "Flush"));
+            return (int) tApuestas.getValueAt(5, 1);
         }
 
         //Straight
         if (tmp[1].getNumero() == tmp[0].getNumero() + 1 && tmp[2].getNumero() == tmp[0].getNumero() + 2
                 && tmp[3].getNumero() == tmp[0].getNumero() + 3 && tmp[4].getNumero() == tmp[0].getNumero() + 4) {
             System.out.println("Straight");
-            return (Integer.parseInt(this.wagerVal.getText()) * ((int) tApuestas.getValueAt(6, 1)));
+            escribirArchivoPartidas(new Partida(this.cartasActuales, "Straight"));
+            return (int) tApuestas.getValueAt(6, 1);
         }
 
         //Three of a kind
@@ -417,6 +435,7 @@ public class VideoPoker extends javax.swing.JFrame {
 
             if (three == 2) {
                 System.out.println("Three of a kind");
+                escribirArchivoPartidas(new Partida(this.cartasActuales, "Three of a kind"));
                 return (int) tApuestas.getValueAt(7, 1);
             } else {
                 three = 0;
@@ -435,25 +454,28 @@ public class VideoPoker extends javax.swing.JFrame {
 
             if (pair1 == 2) {
                 System.out.println("Two Pairs");
+                escribirArchivoPartidas(new Partida(this.cartasActuales, "Two Pairs"));
                 return (int) tApuestas.getValueAt(8, 1);
             }
         }
-        
+
         //Jacks or better
         for (int i = 0; i < 5; i++) {
             if (tmp[i].getNumero() == 1 || tmp[i].getNumero() >= 11) {
                 for (int j = i + 1; j < 5; j++) {
                     if (tmp[i].equalsNum(tmp[j])) {
+                        escribirArchivoPartidas(new Partida(this.cartasActuales, "Jacks or Better"));
                         return (int) tApuestas.getValueAt(9, 1);
                     }
                 }
             }
         }
 
+        escribirArchivoPartidas(new Partida(this.cartasActuales, "Perdió"));
         return 0;
 
     }
-    
+
     private void comprobadorDoubleUp() {
         System.out.println(this.cartaDealer);
         System.out.println(this.cartaUser);
@@ -464,9 +486,84 @@ public class VideoPoker extends javax.swing.JFrame {
             this.btn_doubleUp.setVisible(true);
         } else if (this.cartasActuales[this.cartaDealer - 1].compareTo(this.cartasActuales[this.cartaUser]) == 0) {
             this.btn_doubleUpActionPerformed(null);
-        } else{
+        } else {
             JOptionPane.showMessageDialog(this.tablaApuestas, "Has Perdido", "Mensaje", JOptionPane.INFORMATION_MESSAGE);
             situacionInicial();
+        }
+    }
+
+    private void escribirArchivoPartidas(Partida part) {
+        SLQueue tmp = new SLQueue();
+
+        File parti = new File("./partidas.bin");
+
+        ObjectInputStream in = null;
+
+        try {
+            if (!parti.exists()) {
+                parti.createNewFile();
+            }
+
+            in = new ObjectInputStream(new FileInputStream("./partidas.bin"));
+
+            while (true) {
+                tmp.queue(in.readObject());
+            }
+        } catch (EOFException e) {
+          //Termino la lectura del archivo  
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+        } finally {
+            try {
+                if (in != null) {
+                    in.close();
+                }
+            } catch (IOException ex) {
+            }
+        }
+
+        tmp.queue(part);
+
+        ObjectOutputStream out = null;
+        try {
+            out = new ObjectOutputStream(new FileOutputStream(new File("./partidas.bin")));
+
+            while (!tmp.isEmpty()) {
+                out.writeObject(tmp.dequeue());
+            }
+        } catch (Exception e) {
+            
+        } finally {
+            try {
+                if (out != null) {
+                    out.close();
+                }
+            } catch (IOException ex) {
+            }
+        }
+    }
+
+    private void leerArchivoPartidas() {
+        this.partidas.clear();
+
+        ObjectInputStream in = null;
+
+        try {
+            in = new ObjectInputStream(new FileInputStream(new File("./partidas.bin")));
+
+            while (true) {
+                partidas.insert(in.readObject());
+            }
+        } catch (EOFException e) {
+            //terminó la lectura del archivo;
+        } catch (Exception e) {
+            System.exit(1);
+        } finally {
+            try {
+                in.close();
+            } catch (IOException ex) {
+            }
         }
     }
 
@@ -479,6 +576,16 @@ public class VideoPoker extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        ventanaPartidas = new javax.swing.JDialog();
+        btn_back = new javax.swing.JButton();
+        btn_next = new javax.swing.JButton();
+        btn_carta5 = new javax.swing.JButton();
+        btn_carta1 = new javax.swing.JButton();
+        btn_carta2 = new javax.swing.JButton();
+        btn_carta3 = new javax.swing.JButton();
+        btn_carta4 = new javax.swing.JButton();
+        lbl_descripcion = new javax.swing.JLabel();
+        lbl_fondoPartidas = new javax.swing.JLabel();
         carta2 = new javax.swing.JToggleButton();
         carta3 = new javax.swing.JToggleButton();
         carta4 = new javax.swing.JToggleButton();
@@ -506,11 +613,60 @@ public class VideoPoker extends javax.swing.JFrame {
         btn_collect = new javax.swing.JButton();
         btn_doubleUp = new javax.swing.JButton();
         fondo = new javax.swing.JLabel();
+        menuPrincipal = new javax.swing.JMenuBar();
+        mnu_juego = new javax.swing.JMenu();
+        mnu_juego_partidas = new javax.swing.JMenuItem();
+        mnu_juego_salir = new javax.swing.JMenuItem();
+
+        ventanaPartidas.setMaximumSize(new java.awt.Dimension(784, 300));
+        ventanaPartidas.setMinimumSize(new java.awt.Dimension(784, 300));
+        ventanaPartidas.setResizable(false);
+        ventanaPartidas.addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowActivated(java.awt.event.WindowEvent evt) {
+                ventanaPartidasWindowActivated(evt);
+            }
+        });
+        ventanaPartidas.getContentPane().setLayout(null);
+
+        btn_back.setText("<");
+        btn_back.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_backActionPerformed(evt);
+            }
+        });
+        ventanaPartidas.getContentPane().add(btn_back);
+        btn_back.setBounds(300, 230, 73, 23);
+
+        btn_next.setText(">");
+        btn_next.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_nextActionPerformed(evt);
+            }
+        });
+        ventanaPartidas.getContentPane().add(btn_next);
+        btn_next.setBounds(380, 230, 73, 23);
+        ventanaPartidas.getContentPane().add(btn_carta5);
+        btn_carta5.setBounds(620, 20, 140, 200);
+        ventanaPartidas.getContentPane().add(btn_carta1);
+        btn_carta1.setBounds(20, 20, 140, 200);
+        ventanaPartidas.getContentPane().add(btn_carta2);
+        btn_carta2.setBounds(170, 20, 140, 200);
+        ventanaPartidas.getContentPane().add(btn_carta3);
+        btn_carta3.setBounds(320, 20, 140, 200);
+        ventanaPartidas.getContentPane().add(btn_carta4);
+        btn_carta4.setBounds(470, 20, 140, 200);
+
+        lbl_descripcion.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        lbl_descripcion.setText("Descripcion");
+        ventanaPartidas.getContentPane().add(lbl_descripcion);
+        lbl_descripcion.setBounds(660, 230, 100, 20);
+        ventanaPartidas.getContentPane().add(lbl_fondoPartidas);
+        lbl_fondoPartidas.setBounds(0, 0, 790, 300);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Video Poker");
-        setMaximumSize(new java.awt.Dimension(756, 540));
-        setMinimumSize(new java.awt.Dimension(756, 540));
+        setMaximumSize(new java.awt.Dimension(756, 550));
+        setMinimumSize(new java.awt.Dimension(756, 550));
         setResizable(false);
         getContentPane().setLayout(null);
 
@@ -729,6 +885,30 @@ public class VideoPoker extends javax.swing.JFrame {
         getContentPane().add(fondo);
         fondo.setBounds(0, 0, 750, 540);
 
+        mnu_juego.setText("Juego");
+
+        mnu_juego_partidas.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, java.awt.event.InputEvent.CTRL_MASK));
+        mnu_juego_partidas.setText("Partidas");
+        mnu_juego_partidas.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnu_juego_partidasActionPerformed(evt);
+            }
+        });
+        mnu_juego.add(mnu_juego_partidas);
+
+        mnu_juego_salir.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F4, java.awt.event.InputEvent.ALT_MASK));
+        mnu_juego_salir.setText("Salir");
+        mnu_juego_salir.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnu_juego_salirActionPerformed(evt);
+            }
+        });
+        mnu_juego.add(mnu_juego_salir);
+
+        menuPrincipal.add(mnu_juego);
+
+        setJMenuBar(menuPrincipal);
+
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
@@ -861,14 +1041,14 @@ public class VideoPoker extends javax.swing.JFrame {
         this.carta3.setEnabled(true);
         this.carta4.setEnabled(true);
         this.carta5.setEnabled(true);
-        
+
         this.carta1.setSelected(false);
         this.carta2.setSelected(false);
         this.carta3.setSelected(false);
         this.carta4.setSelected(false);
         this.carta5.setSelected(false);
-        
-        
+
+
         //Activando el modo doubleUp
         this.doubleUp = true;
 
@@ -921,6 +1101,56 @@ public class VideoPoker extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btn_doubleUpActionPerformed
 
+    private void mnu_juego_salirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnu_juego_salirActionPerformed
+        System.exit(0);
+    }//GEN-LAST:event_mnu_juego_salirActionPerformed
+
+    private void mnu_juego_partidasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnu_juego_partidasActionPerformed
+        this.ventanaPartidas.pack();
+        this.ventanaPartidas.setLocationRelativeTo(this);
+        this.ventanaPartidas.setVisible(true);
+    }//GEN-LAST:event_mnu_juego_partidasActionPerformed
+
+    private void ventanaPartidasWindowActivated(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_ventanaPartidasWindowActivated
+        this.lbl_fondoPartidas.setIcon(new ImageIcon("./Cartas/fondo.png"));
+        leerArchivoPartidas();
+        if (this.partidas.isEmpty()) {
+            JOptionPane.showMessageDialog(this.ventanaPartidas, "No hay partidas Guardadas", "Mensaje", JOptionPane.ERROR_MESSAGE);
+            this.ventanaPartidas.setVisible(false);
+        } else {
+            this.btn_carta1.setIcon(((Partida) this.partidas.get(numPartida)).getCarta(0).getImage());
+            this.btn_carta2.setIcon(((Partida) this.partidas.get(numPartida)).getCarta(1).getImage());
+            this.btn_carta3.setIcon(((Partida) this.partidas.get(numPartida)).getCarta(2).getImage());
+            this.btn_carta4.setIcon(((Partida) this.partidas.get(numPartida)).getCarta(3).getImage());
+            this.btn_carta5.setIcon(((Partida) this.partidas.get(numPartida)).getCarta(4).getImage());
+            this.lbl_descripcion.setText(((Partida) this.partidas.get(numPartida)).getDescripcion());
+        }
+    }//GEN-LAST:event_ventanaPartidasWindowActivated
+
+    private void btn_backActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_backActionPerformed
+        if (this.partidas.get(this.numPartida - 1) != null) {
+            this.numPartida--;
+            this.btn_carta1.setIcon(((Partida) this.partidas.get(numPartida)).getCarta(0).getImage());
+            this.btn_carta2.setIcon(((Partida) this.partidas.get(numPartida)).getCarta(1).getImage());
+            this.btn_carta3.setIcon(((Partida) this.partidas.get(numPartida)).getCarta(2).getImage());
+            this.btn_carta4.setIcon(((Partida) this.partidas.get(numPartida)).getCarta(3).getImage());
+            this.btn_carta5.setIcon(((Partida) this.partidas.get(numPartida)).getCarta(4).getImage());
+            this.lbl_descripcion.setText(((Partida) this.partidas.get(numPartida)).getDescripcion());
+        }
+    }//GEN-LAST:event_btn_backActionPerformed
+
+    private void btn_nextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_nextActionPerformed
+        if (this.partidas.get(this.numPartida + 1) != null) {
+            this.numPartida++;
+            this.btn_carta1.setIcon(((Partida) this.partidas.get(numPartida)).getCarta(0).getImage());
+            this.btn_carta2.setIcon(((Partida) this.partidas.get(numPartida)).getCarta(1).getImage());
+            this.btn_carta3.setIcon(((Partida) this.partidas.get(numPartida)).getCarta(2).getImage());
+            this.btn_carta4.setIcon(((Partida) this.partidas.get(numPartida)).getCarta(3).getImage());
+            this.btn_carta5.setIcon(((Partida) this.partidas.get(numPartida)).getCarta(4).getImage());
+            this.lbl_descripcion.setText(((Partida) this.partidas.get(numPartida)).getDescripcion());
+        }
+    }//GEN-LAST:event_btn_nextActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -956,12 +1186,19 @@ public class VideoPoker extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btn_back;
     private javax.swing.JButton btn_bet;
+    private javax.swing.JButton btn_carta1;
+    private javax.swing.JButton btn_carta2;
+    private javax.swing.JButton btn_carta3;
+    private javax.swing.JButton btn_carta4;
+    private javax.swing.JButton btn_carta5;
     private javax.swing.JButton btn_collect;
     private javax.swing.JButton btn_deal;
     private javax.swing.JButton btn_doubleUp;
     private javax.swing.JButton btn_draw;
     private javax.swing.JButton btn_maxbet;
+    private javax.swing.JButton btn_next;
     private javax.swing.JToggleButton carta1;
     private javax.swing.JToggleButton carta2;
     private javax.swing.JToggleButton carta3;
@@ -976,14 +1213,23 @@ public class VideoPoker extends javax.swing.JFrame {
     private javax.swing.JLabel lbl_Carta4;
     private javax.swing.JLabel lbl_Carta5;
     private javax.swing.JLabel lbl_credits;
+    private javax.swing.JLabel lbl_descripcion;
+    private javax.swing.JLabel lbl_fondoPartidas;
     private javax.swing.JLabel lbl_paid;
     private javax.swing.JLabel lbl_wager;
     private javax.swing.JLabel lbl_win;
+    private javax.swing.JMenuBar menuPrincipal;
+    private javax.swing.JMenu mnu_juego;
+    private javax.swing.JMenuItem mnu_juego_partidas;
+    private javax.swing.JMenuItem mnu_juego_salir;
     private javax.swing.JLabel paidVal;
     private javax.swing.JTable tablaApuestas;
+    private javax.swing.JDialog ventanaPartidas;
     private javax.swing.JLabel wagerVal;
     private javax.swing.JLabel winVal;
     // End of variables declaration//GEN-END:variables
+    //Ventana de partidas
+    private int numPartida;
     //Modo doubleUp
     private boolean doubleUp = false;
     private int cartaDealer = -1;
@@ -996,6 +1242,7 @@ public class VideoPoker extends javax.swing.JFrame {
     private final int QUINTO_RANGO = 5;
     private static int rango = 1;
     //Estructuras de datos
+    private SLList partidas;
     private SLList cartas;
     private SLStack baraja;
     private ImageIcon parteTrasera;

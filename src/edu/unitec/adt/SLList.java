@@ -4,11 +4,13 @@
  */
 package edu.unitec.adt;
 
+import java.io.Serializable;
+
 /**
  *
  * @author EdilsonFernando
  */
-public class SLList extends ADTList {
+public class SLList extends ADTList implements Serializable {
     
     private SLNode head;
     
@@ -49,6 +51,10 @@ public class SLList extends ADTList {
         
         size++;
         return true;
+    }
+    
+    public boolean insert(Object E) {
+        return this.insert(E, size);
     }
     
     @Override

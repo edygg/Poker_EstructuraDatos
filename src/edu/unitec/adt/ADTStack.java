@@ -4,11 +4,13 @@
  */
 package edu.unitec.adt;
 
+import java.io.Serializable;
+
 /**
  *
  * @author EdilsonFernando
  */
-public abstract class ADTStack {
+public abstract class ADTStack implements Serializable {
     
     protected int size;
     

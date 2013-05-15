@@ -4,11 +4,13 @@
  */
 package edu.unitec.adt;
 
+import java.io.Serializable;
+
 /**
  *
  * @author EdilsonFernando
  */
-public abstract class ADTQueue {
+public abstract class ADTQueue implements Serializable {
     
     protected int size;
 

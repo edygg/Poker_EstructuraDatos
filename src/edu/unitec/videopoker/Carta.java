@@ -4,13 +4,14 @@
  */
 package edu.unitec.videopoker;
 
+import java.io.Serializable;
 import javax.swing.ImageIcon;
 
 /**
  *
  * @author EdilsonFernando
  */
-public class Carta implements Comparable {
+public class Carta implements Comparable, Serializable {
     public static String TREBOL = "Trebol";
     public static String ESPADA = "Espada";
     public static String DIAMANTE = "Diamante";
@@ -70,7 +71,9 @@ public class Carta implements Comparable {
                     return 1;
                 }
             } else {
-                if (this.getNumero() > ((Carta) other).getNumero()) {
+                if (((Carta) other).getNumero() == 1) {
+                    return -1;
+                } else if (this.getNumero() > ((Carta) other).getNumero()) {
                     return 1;
                 } else if (this.getNumero() < ((Carta) other).getNumero()) {
                     return -1;

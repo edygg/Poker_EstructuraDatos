@@ -4,11 +4,13 @@
  */
 package edu.unitec.adt;
 
+import java.io.Serializable;
+
 /**
  *
  * @author EdilsonFernando
  */
-public class SLNode {
+public class SLNode implements Serializable {
     private Object data;
     private SLNode next;
     
