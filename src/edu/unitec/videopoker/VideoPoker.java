@@ -14,8 +14,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
@@ -38,7 +36,7 @@ public class VideoPoker extends javax.swing.JFrame {
         this.pack();
 
         //Inicializando parte trasera de un naipe
-        this.parteTrasera = new ImageIcon("./Cartas/ParteTrasera.png");
+        this.parteTrasera = new ImageIcon(this.getClass().getResource("ParteTrasera.png"));
         this.parteTrasera.setImage(this.parteTrasera.getImage().getScaledInstance(131, 186, Image.SCALE_DEFAULT));
 
         //Inicializando arreglo actual
@@ -137,7 +135,7 @@ public class VideoPoker extends javax.swing.JFrame {
                 card = Carta.TREBOL;
             }
 
-            ImageIcon n = new ImageIcon("./Cartas/" + card + ((i % 13) + 1) + ".png");
+            ImageIcon n = new ImageIcon(this.getClass().getResource(card + ((i % 13) + 1) + ".png"));
             n.setImage(n.getImage().getScaledInstance(131, 186, Image.SCALE_DEFAULT));
 
             try {
@@ -618,7 +616,6 @@ public class VideoPoker extends javax.swing.JFrame {
         mnu_juego_partidas = new javax.swing.JMenuItem();
         mnu_juego_salir = new javax.swing.JMenuItem();
 
-        ventanaPartidas.setMaximumSize(new java.awt.Dimension(784, 300));
         ventanaPartidas.setMinimumSize(new java.awt.Dimension(784, 300));
         ventanaPartidas.setResizable(false);
         ventanaPartidas.addWindowListener(new java.awt.event.WindowAdapter() {
@@ -881,7 +878,7 @@ public class VideoPoker extends javax.swing.JFrame {
         getContentPane().add(btn_doubleUp);
         btn_doubleUp.setBounds(390, 210, 81, 23);
 
-        fondo.setIcon(new ImageIcon("./Cartas/fondo.png"));
+        fondo.setIcon(new ImageIcon(this.getClass().getResource("fondo.png")));
         getContentPane().add(fondo);
         fondo.setBounds(0, 0, 750, 540);
 
@@ -1112,7 +1109,7 @@ public class VideoPoker extends javax.swing.JFrame {
     }//GEN-LAST:event_mnu_juego_partidasActionPerformed
 
     private void ventanaPartidasWindowActivated(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_ventanaPartidasWindowActivated
-        this.lbl_fondoPartidas.setIcon(new ImageIcon("./Cartas/fondo.png"));
+        this.lbl_fondoPartidas.setIcon(new ImageIcon(this.getClass().getResource("fondo.png")));
         leerArchivoPartidas();
         if (this.partidas.isEmpty()) {
             JOptionPane.showMessageDialog(this.ventanaPartidas, "No hay partidas Guardadas", "Mensaje", JOptionPane.ERROR_MESSAGE);
