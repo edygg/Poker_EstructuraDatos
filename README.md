@@ -5,6 +5,7 @@
 Escriba ant en la consola. Si no lo posee instalado introduzca en comando
 	
 	sudo apt-get install ant
+	ant
 
 ## Para ejecutar el proyecto
 Desplacese a la carpeta 'dist' y ejecute el jar dentro de la carpeta
