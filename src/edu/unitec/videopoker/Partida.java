@@ -16,20 +16,20 @@ import java.io.Serializable;
  */
 public class Partida implements Serializable {
     /**
-     * Lista de cartas
+     * Lista de cartas.
      * @see SLList
      */
     private SLList cartas;
     /**
-     * Cadena con una descripción del juego
+     * Cadena con una descripción del juego.
      */
     private String descripción;
     
     /**
      * Contructor que inicializa una partida a partir de un arreglo de cartas
      * y una descripción de lo que sucedió en la partida.
-     * @param cards Arreglo de cartas que identifica la partida
-     * @param des Cadena con la descripción de lo que sucedió en la partida
+     * @param cards Arreglo de cartas que identifica la partida.
+     * @param des Cadena con la descripción de lo que sucedió en la partida.
      */
     public Partida(Carta[] cards, String des) {
         cartas = new SLList();
@@ -42,14 +42,18 @@ public class Partida implements Serializable {
     }
     
     /**
-     * Obtiene alguna de las cartas 
-     * @param p
-     * @return 
+     * Obtiene alguna de las cartas dentro de la partida almacenada (0-4).
+     * @param p La posición de la carta en la partida (0-4).
+     * @return Retorna la carta si la posición es válida caso contrario retorna null.
      */
     public Carta getCarta(int p) {
         return (Carta) cartas.get(p);
     }
     
+    /**
+     * Metodo accesor para la descripción almacenada de la partida.
+     * @return Retorna una cadena con la descripción de la partida.
+     */
     public String getDescripcion() {
         return this.descripción;
     }
