@@ -19,14 +19,21 @@ import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
 /**
+ * Ventana principal del juego Video Poker
  *
  * @author EdilsonFernando
  */
 public class VideoPoker extends javax.swing.JFrame {
 
     /**
-     * Creates new form VideoPoker
+     * Crea e inicializa todos los componentes de la ventana de juego. Además
+     * establece todo el juego en su situación inicial: pide el monto y prepara
+     * para el usuario una nueva mano de cartas.
      *
+     * @see VideoPoker#inicializarCartas()
+     * @see VideoPoker#situacionInicial()
+     * @see VideoPoker#ajustarApuesta(int)
+     * @see VideoPoker#pedirMonto()
      */
     public VideoPoker() {
         initComponents();
@@ -42,15 +49,24 @@ public class VideoPoker extends javax.swing.JFrame {
         //Inicializando arreglo actual
         this.cartasActuales = new Carta[5];
 
+        //Inicializando las partidas guardadas
         this.partidas = new SLList();
         this.numPartida = 0;
 
+        //Preparando todo el juego
         inicializarCartas();
         situacionInicial();
         ajustarApuesta(PRIMER_RANGO);
         pedirMonto();
     }
 
+    /**
+     * Método que despliega InputDialog de JOptionPane para pedir el monto
+     * inicial del juego, si el usuario no ingresa ningún monto y cierra la
+     * ventana termina la ejecución del programa. Se llamará cada vez que el
+     * usuario se quede sin dinero para continuar jugando. Asigna el valor a un
+     * label que contiene el monto del dinero actual.
+     */
     private void pedirMonto() {
         int val;
 
@@ -61,22 +77,34 @@ public class VideoPoker extends javax.swing.JFrame {
                         "Ingrese el monto inicial",
                         "Bienvenido",
                         JOptionPane.INFORMATION_MESSAGE);
-
-
                 if (ing == null) {
+                    // Si el usuario no ingresa ningún valor cierra el programa
                     System.exit(0);
                 }
 
+                //Intenta convertir la entrada en número
                 val = Integer.parseInt(ing);
 
                 break;
             } catch (Exception e) {
+                //Si la entrada no fue válida continúa el ciclo de petición
             }
         }
 
+        //Asigna el valor al monto inicial del juego
         this.creditsVal.setText(Integer.toString(val));
     }
 
+    /**
+     * Prepara todos los componentes para la situación inicial del juego.
+     * Realiza las siguientes tareas: 1) Reinicia el contador de creditos
+     * ganados 2) Deshabilita el modo doubleUp 4) Habilita todos los botones que
+     * simulan las cartas 5) Hace una nueva baraja de cartas 6) Asigna las
+     * figuras de la parte trasera de las cartas 7) Activa los botones maxbet,
+     * bet y deal
+     *
+     * @see VideoPoker#doubleUp
+     */
     private void situacionInicial() {
         this.winVal.setText("0");
         this.doubleUp = false;
@@ -96,6 +124,14 @@ public class VideoPoker extends javax.swing.JFrame {
         this.btn_doubleUp.setVisible(false);
     }
 
+    /**
+     * Animación que se encarga de asignar a los botones que simulan las cartas
+     * la parte trasera de éstas para ocultar las verdaderas imágenes. También
+     * se encarga de llamar al método que oculta las etiquetas "Held" de la
+     * parte superior de las cartas.
+     *
+     * @see VideoPoker#ocultarHelds()
+     */
     private void animacionCambio() {
         this.carta1.setIcon(this.parteTrasera);
         this.carta2.setIcon(this.parteTrasera);
@@ -106,6 +142,10 @@ public class VideoPoker extends javax.swing.JFrame {
         ocultarHelds();
     }
 
+    /**
+     * Oculta las etiquetas "Held" posicionadas en la parte superior de las
+     * cartas.
+     */
     private void ocultarHelds() {
         this.lbl_Carta1.setVisible(false);
         this.lbl_Carta2.setVisible(false);
@@ -114,6 +154,10 @@ public class VideoPoker extends javax.swing.JFrame {
         this.lbl_Carta5.setVisible(false);
     }
 
+    /**
+     * Si los botones están seleccionados, borra la selección para que vuelvan a
+     * su estado original.
+     */
     private void borrarSeleccion() {
         this.carta1.setSelected(false);
         this.carta2.setSelected(false);
@@ -122,6 +166,11 @@ public class VideoPoker extends javax.swing.JFrame {
         this.carta5.setSelected(false);
     }
 
+    /**
+     * Inicializa toda una baraja de cartas de manera ordenada cargando las
+     * imágenes con éstas. Si las cartas no logran inicializarse el programa se
+     * cierra de manera no exitosa.
+     */
     private void inicializarCartas() {
         this.cartas = new SLList();
         String card = Carta.DIAMANTE;
@@ -156,9 +205,17 @@ public class VideoPoker extends javax.swing.JFrame {
          */
     }
 
+    /**
+     * Crea una nueva baraja para usar en el programa. Esta se almacena de
+     * manera aleatoria.
+     *
+     * @see VideoPoker#cartas
+     * @see VideoPoker#baraja
+     */
     private void nuevaBarajar() {
         SLList cCartas = new SLList();
 
+        //Copia de la lista con las cartas ordenadas
         for (int i = 0; i < this.cartas.getSize(); i++) {
             cCartas.insert(this.cartas.get(i), cCartas.getSize());
         }
@@ -166,6 +223,8 @@ public class VideoPoker extends javax.swing.JFrame {
 
         this.baraja = new SLStack();
 
+        //Se eliminan las cartas que ya fueron insertadas en la pila.
+        //la inserción se hace mediante un Random
         while (!cCartas.isEmpty()) {
             Random r = new Random();
             int num = r.nextInt(cCartas.getSize());
@@ -173,6 +232,15 @@ public class VideoPoker extends javax.swing.JFrame {
         }
     }
 
+    /**
+     * Activa la primer evaluación de las cartas. Luego de este método se
+     * permite mantener las cartas para su posterior evaluación. Asigna las
+     * cartas actuales sacandolas de la pila para luego activar el botón draw de
+     * evaluación de la partida.
+     *
+     * @see VideoPoker#baraja
+     * @see VideoPoker#cartasActuales
+     */
     private void deal() {
         this.desCartas = false;
 
@@ -207,6 +275,19 @@ public class VideoPoker extends javax.swing.JFrame {
         this.btn_deal.setVisible(false);
     }
 
+    /**
+     * Este método sustituye las cartas que no fueron marcadas con "Held" y
+     * llama al método evaluador para verificar que combinacion ganó el usuario.
+     * Lanza un mensaje de "Ha ganado" si el usuario logró alguna combinación,
+     * lanza "Ha perdido" en el caso contrario. Si pierde se encarga de regresar
+     * a la situación inicial, mientras que si gana prepara los botones collect
+     * y doubleUp para continuar con el flujo del juego.
+     *
+     * @see VideoPoker#ocultarHelds()
+     * @see VideoPoker#borrarSeleccion()
+     * @see VideoPoker#validadorCombinaciones()
+     * @see VideoPoker#situacionInicial()
+     */
     private void draw() {
         if (!this.carta1.isSelected()) {
             this.cartasActuales[0] = ((Carta) this.baraja.pop());
@@ -263,13 +344,27 @@ public class VideoPoker extends javax.swing.JFrame {
         }
     }
 
+    /**
+     * Ajusta la tabla de apuestas dependiendo del rango designado. El rango se
+     * determina a partir de las constantes destinadas para este fin que se
+     * encuentran en esta misma clase.
+     *
+     * @param RANGO Rango de apustas para ajustar la tabla
+     * @see VideoPoker#PRIMER_RANGO
+     * @see VideoPoker#SEGUNDO_RANGO
+     * @see VideoPoker#TERCER_RANGO
+     * @see VideoPoker#CUARTO_RANGO
+     * @see VideoPoker#QUINTO_RANGO
+     */
     private void ajustarApuesta(final int RANGO) {
         DefaultTableModel model = (DefaultTableModel) this.tablaApuestas.getModel();
 
+        //Limpia el modelo de la tabla
         while (model.getRowCount() != 0) {
             model.removeRow(0);
         }
 
+        //Titulos de las combinaciones
         final String[] combinaciones = {
             "Royal Straight Flush",
             "Five of a Kind",
@@ -283,10 +378,12 @@ public class VideoPoker extends javax.swing.JFrame {
             "Jacks or Better"
         };
 
+        //Puntuaciones iniciales por combinación
         final int[] puntuaciones = {
             250, 100, 50, 25, 9, 6, 4, 3, 2, 1
         };
 
+        //Crea todo el modelo a partir de la constante de apuestas dada
         if (RANGO == PRIMER_RANGO) {
             for (int i = 0; i < combinaciones.length; i++) {
                 Object[] row = {combinaciones[i], puntuaciones[i]};
@@ -317,17 +414,28 @@ public class VideoPoker extends javax.swing.JFrame {
             }
         }
 
+        //Establece el modelo de la tabla de apuestas
         this.tablaApuestas.setModel(model);
     }
 
+    /**
+     * Se encarga de validar la combinación de cartas que obtuvo el usuario. Se
+     * basa en la combinación actual de cartas. Además escribe en el archivo de
+     * las partidas por cada partida comprobada por este método.
+     *
+     * @return retorna el valor de la tabla de apuestas correspondiente a la
+     * combinación de cartas realizada, si no se ganó en ningura retorna 0.
+     */
     private int validadorCombinaciones() {
         //Ordenar las cartas
         Carta tmp[] = new Carta[5];
 
+        //Copia el arreglo actual de cartas
         for (int i = 0; i < 5; i++) {
             tmp[i] = this.cartasActuales[i];
         }
 
+        //Ordena las cartas mediante un bubble sort
         for (int i = 0; i < tmp.length; i++) {
             for (int j = 0; j < tmp.length - 1; j++) {
                 if (tmp[j].getNumero() > tmp[j + 1].getNumero()) {
@@ -338,9 +446,11 @@ public class VideoPoker extends javax.swing.JFrame {
             }
         }
 
-        for (int i = 0; i < 5; i++) {
-            System.out.println(tmp[i]);
-        }
+        /*
+         for (int i = 0; i < 5; i++) {
+         System.out.println(tmp[i]);
+         }
+         */
 
         //Modelo de la tabla de apuestas
         DefaultTableModel tApuestas = (DefaultTableModel) this.tablaApuestas.getModel();
@@ -350,7 +460,7 @@ public class VideoPoker extends javax.swing.JFrame {
                 && tmp[0].getPalo().equals(tmp[3].getPalo()) && tmp[0].getPalo().equals(tmp[4].getPalo())) {
             if (tmp[0].getNumero() == 1 && tmp[1].getNumero() == 10 && tmp[2].getNumero() == 11
                     && tmp[3].getNumero() == 12 && tmp[4].getNumero() == 13) {
-                System.out.println("Royal Straight Flush");
+                //System.out.println("Royal Straight Flush");
                 escribirArchivoPartidas(new Partida(this.cartasActuales, "Royal Straight Flush"));
                 return (int) tApuestas.getValueAt(0, 1);
             }
@@ -364,7 +474,7 @@ public class VideoPoker extends javax.swing.JFrame {
             if (tmp[1].getNumero() == tmp[0].getNumero() + 1 && tmp[2].getNumero() == tmp[0].getNumero() + 2
                     && tmp[3].getNumero() == tmp[0].getNumero() + 3 && tmp[4].getNumero() == tmp[0].getNumero() + 4) {
                 if (tmp[0].getNumero() != 1) {
-                    System.out.println("Straight Flush");
+                    //System.out.println("Straight Flush");
                     escribirArchivoPartidas(new Partida(this.cartasActuales, "Straight Flush"));
                     return (int) tApuestas.getValueAt(2, 1);
                 }
@@ -382,7 +492,7 @@ public class VideoPoker extends javax.swing.JFrame {
             }
 
             if (four == 3) {
-                System.out.println("Four of a kind");
+                //System.out.println("Four of a kind");
                 escribirArchivoPartidas(new Partida(this.cartasActuales, "Four of a kind"));
                 return (int) tApuestas.getValueAt(3, 1);
             } else {
@@ -400,7 +510,7 @@ public class VideoPoker extends javax.swing.JFrame {
             }
 
             if (fullhouse == 4) {
-                System.out.println("Full House");
+                //System.out.println("Full House");
                 escribirArchivoPartidas(new Partida(this.cartasActuales, "Full House"));
                 return (int) tApuestas.getValueAt(4, 1);
             }
@@ -409,7 +519,7 @@ public class VideoPoker extends javax.swing.JFrame {
         //Flush
         if (tmp[0].getPalo().equals(tmp[1].getPalo()) && tmp[0].getPalo().equals(tmp[2].getPalo())
                 && tmp[0].getPalo().equals(tmp[3].getPalo()) && tmp[0].getPalo().equals(tmp[4].getPalo())) {
-            System.out.println("Flush");
+            //System.out.println("Flush");
             escribirArchivoPartidas(new Partida(this.cartasActuales, "Flush"));
             return (int) tApuestas.getValueAt(5, 1);
         }
@@ -417,7 +527,7 @@ public class VideoPoker extends javax.swing.JFrame {
         //Straight
         if (tmp[1].getNumero() == tmp[0].getNumero() + 1 && tmp[2].getNumero() == tmp[0].getNumero() + 2
                 && tmp[3].getNumero() == tmp[0].getNumero() + 3 && tmp[4].getNumero() == tmp[0].getNumero() + 4) {
-            System.out.println("Straight");
+            //System.out.println("Straight");
             escribirArchivoPartidas(new Partida(this.cartasActuales, "Straight"));
             return (int) tApuestas.getValueAt(6, 1);
         }
@@ -432,7 +542,7 @@ public class VideoPoker extends javax.swing.JFrame {
             }
 
             if (three == 2) {
-                System.out.println("Three of a kind");
+                //System.out.println("Three of a kind");
                 escribirArchivoPartidas(new Partida(this.cartasActuales, "Three of a kind"));
                 return (int) tApuestas.getValueAt(7, 1);
             } else {
@@ -451,7 +561,7 @@ public class VideoPoker extends javax.swing.JFrame {
             }
 
             if (pair1 == 2) {
-                System.out.println("Two Pairs");
+                //System.out.println("Two Pairs");
                 escribirArchivoPartidas(new Partida(this.cartasActuales, "Two Pairs"));
                 return (int) tApuestas.getValueAt(8, 1);
             }
@@ -474,9 +584,21 @@ public class VideoPoker extends javax.swing.JFrame {
 
     }
 
+    /**
+     * Método comprobador para el modo Double Up. Compara la carta del Dealer
+     * con la carta seleccionada por el usuario, si la carta de Dealer es mayor
+     * el usuario pierde y se regresa a la situación inicial, caso contrario el
+     * usuario gana y tiene la posibilidad de volver a hacer double Up o de
+     * tomar su ganancia. En caso de empate, se recinicia el double up sin
+     * perdidas ni ganancias.
+     *
+     * @see Carta#compareTo(java.lang.Object)
+     * @see VideoPoker#situacionInicial()
+     * @see VideoPoker#btn_doubleUpActionPerformed(java.awt.event.ActionEvent)
+     */
     private void comprobadorDoubleUp() {
-        System.out.println(this.cartaDealer);
-        System.out.println(this.cartaUser);
+        //System.out.println(this.cartaDealer);
+        //System.out.println(this.cartaUser);
         if (this.cartasActuales[this.cartaDealer - 1].compareTo(this.cartasActuales[this.cartaUser]) < 0) {
             JOptionPane.showMessageDialog(this.tablaApuestas, "¡Has GANADO!", "Mensaje", JOptionPane.INFORMATION_MESSAGE);
             this.winVal.setText(Integer.toString(Integer.parseInt(this.winVal.getText()) * 2));
@@ -490,6 +612,12 @@ public class VideoPoker extends javax.swing.JFrame {
         }
     }
 
+    /**
+     * Método que se encarga de escribir una partida dentro del historial de
+     * partidas, que se conforma de un archivo binario.
+     *
+     * @param part Partida actual que se guardará en el archivo.
+     */
     private void escribirArchivoPartidas(Partida part) {
         SLQueue tmp = new SLQueue();
 
@@ -508,7 +636,7 @@ public class VideoPoker extends javax.swing.JFrame {
                 tmp.queue(in.readObject());
             }
         } catch (EOFException e) {
-          //Termino la lectura del archivo  
+            //Termino la lectura del archivo  
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
@@ -531,7 +659,6 @@ public class VideoPoker extends javax.swing.JFrame {
                 out.writeObject(tmp.dequeue());
             }
         } catch (Exception e) {
-            
         } finally {
             try {
                 if (out != null) {
@@ -542,6 +669,13 @@ public class VideoPoker extends javax.swing.JFrame {
         }
     }
 
+    /**
+     * Método que se encarga de la lectura del archivo partidas. Este método se
+     * encarga de actualizar la lista de partidas para su visualización
+     * porterior.
+     *
+     * @see VideoPoker#partidas
+     */
     private void leerArchivoPartidas() {
         this.partidas.clear();
 
@@ -909,6 +1043,12 @@ public class VideoPoker extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    /**
+     * Metodo que en modo double up activa el comprobador de cartas para él y
+     * en modo normal marca la carta en estado "Held" para su retención luego 
+     * de presionar el botón draw
+     * @param evt Evento que se dispara al accionar el botón
+     */
     private void carta1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_carta1ActionPerformed
         if (this.doubleUp) {
             this.carta1.setIcon(this.cartasActuales[0].getImage());
@@ -926,6 +1066,12 @@ public class VideoPoker extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_carta1ActionPerformed
 
+    /**
+     * Metodo que en modo double up activa el comprobador de cartas para él y
+     * en modo normal marca la carta en estado "Held" para su retención luego 
+     * de presionar el botón draw
+     * @param evt Evento que se dispara al accionar el botón
+     */
     private void carta2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_carta2ActionPerformed
         if (this.doubleUp) {
             this.carta2.setIcon(this.cartasActuales[1].getImage());
@@ -942,6 +1088,12 @@ public class VideoPoker extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_carta2ActionPerformed
 
+    /**
+     * Metodo que en modo double up activa el comprobador de cartas para él y
+     * en modo normal marca la carta en estado "Held" para su retención luego 
+     * de presionar el botón draw
+     * @param evt Evento que se dispara al accionar el botón
+     */
     private void carta3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_carta3ActionPerformed
         if (this.doubleUp) {
             this.carta3.setIcon(this.cartasActuales[2].getImage());
@@ -958,6 +1110,12 @@ public class VideoPoker extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_carta3ActionPerformed
 
+    /**
+     * Metodo que en modo double up activa el comprobador de cartas para él y
+     * en modo normal marca la carta en estado "Held" para su retención luego 
+     * de presionar el botón draw
+     * @param evt Evento que se dispara al accionar el botón
+     */
     private void carta4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_carta4ActionPerformed
         if (this.doubleUp) {
             this.carta4.setIcon(this.cartasActuales[3].getImage());
@@ -974,6 +1132,12 @@ public class VideoPoker extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_carta4ActionPerformed
 
+    /**
+     * Metodo que en modo double up activa el comprobador de cartas para él y
+     * en modo normal marca la carta en estado "Held" para su retención luego 
+     * de presionar el botón draw
+     * @param evt Evento que se dispara al accionar el botón
+     */
     private void carta5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_carta5ActionPerformed
         if (this.doubleUp) {
             this.carta5.setIcon(this.cartasActuales[4].getImage());
@@ -990,16 +1154,41 @@ public class VideoPoker extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_carta5ActionPerformed
 
+    /**
+     * Llama al método draw para sustituir las castas no retenidas.
+     * @param evt Evento que se dispara al accionar el botón
+     * @see VideoPoker#draw() 
+     */
     private void btn_drawActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_drawActionPerformed
         draw();
     }//GEN-LAST:event_btn_drawActionPerformed
 
+    /**
+     * Apuesta máxima. Asigna el rango de apuestas en el mayor de todos y 
+     * automáticamente llama al método deal para lanzar la primera mano de
+     * cartas.
+     * @param evt Evento que se dispara al accionar el botón
+     * @see VideoPoker#QUINTO_RANGO
+     * @see VideoPoker#deal()
+     */
     private void btn_maxbetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_maxbetActionPerformed
         ajustarApuesta(QUINTO_RANGO);
         this.wagerVal.setText("5");
         deal();
     }//GEN-LAST:event_btn_maxbetActionPerformed
 
+    /**
+     * Ajusta la apuesta en cada accionar del botón, mantiene un contador de
+     * rango que activa los diferentes rangos (1-5) para cambiar la apuesta
+     * de la tabla
+     * @param evt Evento que se dispara al accionar el botón
+     * @see VideoPoker#rango
+     * @see VideoPoker#PRIMER_RANGO
+     * @see VideoPoker#SEGUNDO_RANGO
+     * @see VideoPoker#TERCER_RANGO
+     * @see VideoPoker#CUARTO_RANGO
+     * @see VideoPoker#QUINTO_RANGO
+     */
     private void btn_betActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_betActionPerformed
         ajustarApuesta((rango % 5) + 1);
         if ((rango % 5) + 1 == PRIMER_RANGO) {
@@ -1016,10 +1205,20 @@ public class VideoPoker extends javax.swing.JFrame {
         rango++;
     }//GEN-LAST:event_btn_betActionPerformed
 
+    /**
+     * Llama al metodo deal para lanzar una mano de cartas por primera vez.
+     * @param evt Evento que se dispara al accionar el botón
+     * @see VideoPoker#deal() 
+     */
     private void btn_dealActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_dealActionPerformed
         deal();
     }//GEN-LAST:event_btn_dealActionPerformed
 
+    /**
+     * Suma lo ganado hasta el momento dentro de los créditos y el pago se 
+     * ve reflejado en los labels
+     * @param evt Evento que se dispara al accionar el botón
+     */
     private void btn_collectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_collectActionPerformed
         this.paidVal.setText(Integer.toString(Integer.parseInt(this.winVal.getText()) + Integer.parseInt(this.paidVal.getText())));
         this.creditsVal.setText(Integer.toString(Integer.parseInt(this.paidVal.getText()) + Integer.parseInt(this.creditsVal.getText())));
@@ -1029,6 +1228,10 @@ public class VideoPoker extends javax.swing.JFrame {
         situacionInicial();
     }//GEN-LAST:event_btn_collectActionPerformed
 
+    /**
+     * Configura toda la situación inicial del modo double up
+     * @param evt Evento que se dispara al accionar el botón
+     */
     private void btn_doubleUpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_doubleUpActionPerformed
         this.btn_collect.setVisible(false);
         this.btn_doubleUp.setVisible(false);
@@ -1098,16 +1301,33 @@ public class VideoPoker extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btn_doubleUpActionPerformed
 
+    /**
+     * Para salir del juego.
+     * @param evt Evento que se dispara al accionar el menú.
+     */
     private void mnu_juego_salirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnu_juego_salirActionPerformed
         System.exit(0);
     }//GEN-LAST:event_mnu_juego_salirActionPerformed
 
+    /**
+     * Lanza la ventana de partidas para que sean visualizadas por el usuario.
+     * @param evt Evento que se dispara al accionar el menú.
+     * @see VideoPoker#ventanaPartidas
+     */
     private void mnu_juego_partidasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnu_juego_partidasActionPerformed
         this.ventanaPartidas.pack();
         this.ventanaPartidas.setLocationRelativeTo(this);
         this.ventanaPartidas.setVisible(true);
     }//GEN-LAST:event_mnu_juego_partidasActionPerformed
 
+    /**
+     * Cada vez que se activa la ventana de partidas, se lee el archivo de
+     * partidas para actualizar la lista de partidas.
+     * @param evt Evento que se dispara al abrir la ventana
+     * @see VideoPoker#partidas
+     * @see VideoPoker#leerArchivoPartidas() 
+     * @see Partida 
+     */
     private void ventanaPartidasWindowActivated(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_ventanaPartidasWindowActivated
         this.lbl_fondoPartidas.setIcon(new ImageIcon(this.getClass().getResource("fondo.png")));
         leerArchivoPartidas();
@@ -1124,6 +1344,11 @@ public class VideoPoker extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_ventanaPartidasWindowActivated
 
+    /**
+     * Se mueve hacia atrás en la lista de partidas.
+     * @param evt Evento que se dispara al accionar el botón.
+     * @see VideoPoker#partidas
+     */
     private void btn_backActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_backActionPerformed
         if (this.partidas.get(this.numPartida - 1) != null) {
             this.numPartida--;
@@ -1136,6 +1361,10 @@ public class VideoPoker extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btn_backActionPerformed
 
+    /**
+     * Se mueve hacia adelante en la lista de partidas.
+     * @param evt Evento que se dispara al accionar el botón.
+     */
     private void btn_nextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_nextActionPerformed
         if (this.partidas.get(this.numPartida + 1) != null) {
             this.numPartida++;
@@ -1226,23 +1455,87 @@ public class VideoPoker extends javax.swing.JFrame {
     private javax.swing.JLabel winVal;
     // End of variables declaration//GEN-END:variables
     //Ventana de partidas
+    /**
+     * Partida actual mostrada en la ventana de partidas
+     * @see VideoPoker#ventanaPartidas
+     */
     private int numPartida;
     //Modo doubleUp
+    /**
+     * Booleano que identifica si el modo double up está activo.
+     * @see VideoPoker#comprobadorDoubleUp() 
+     */
     private boolean doubleUp = false;
+    
+    /**
+     * Número de la carta que seleccionó el Dealer en el modo double up.
+     */
     private int cartaDealer = -1;
+    
+    /**
+     * Número de la carta que seleccionó el usuario.
+     */
     private int cartaUser;
     //apuestas 
+    /**
+     * Constante que identifica el primer rango de apuestas
+     */
     private final int PRIMER_RANGO = 1;
+    
+    /**
+     * Constante que identifica el segundo rango de apuestas
+     */
     private final int SEGUNDO_RANGO = 2;
+    
+    /**
+     * Constante que identifica el tercer rango de apuestas
+     */
     private final int TERCER_RANGO = 3;
+    
+    /**
+     * Constante que identifica el cuarto rango de apuestas
+     */
     private final int CUARTO_RANGO = 4;
+    
+    /**
+     * Constante que identifica el quinto rango de apuestas
+     */
     private final int QUINTO_RANGO = 5;
+    
+    /**
+     * Rango actual de apuestas
+     */
     private static int rango = 1;
     //Estructuras de datos
+    /**
+     * Mantiene las partidas cargadas desde el archivo de partidas.
+     * @see VideoPoker#leerArchivoPartidas() 
+     * @see VideoPoker#escribirArchivoPartidas(edu.unitec.videopoker.Partida) 
+     */
     private SLList partidas;
+    
+    /**
+     * Lista de cartas ordenadas.
+     */
     private SLList cartas;
+    
+    /**
+     * Baraja de cartas desordenadas.
+     */
     private SLStack baraja;
+    
+    /**
+     * Imagen de la parte trasera de las cartas.
+     */
     private ImageIcon parteTrasera;
+    
+    /**
+     * Booleano que activa y desactiva el estado "Held" de las cartas.
+     */
     private boolean desCartas;
+    
+    /**
+     * Arreglo que mantiene la mano actual del juego.
+     */
     private Carta[] cartasActuales;
 }
